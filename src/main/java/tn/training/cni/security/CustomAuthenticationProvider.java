@@ -1,14 +1,35 @@
 package tn.training.cni.security;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import tn.training.cni.dto.UserDTO;
+import tn.training.cni.model.Role;
+import tn.training.cni.model.User;
+import tn.training.cni.service.UserService;
+import tn.training.cni.utilities.ConvertUtilities;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @Slf4j
 public class CustomAuthenticationProvider implements AuthenticationProvider {
+
+    @Autowired
+    UserService userService;
+
+    @Autowired
+    PasswordEncoder passwordEncode;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         try {
@@ -19,43 +40,18 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
             List<User> userList;
             List<User> userEntity = new ArrayList<>();
-
-            if (login.contains("@")) {
-                userList = userRepository.findByEmail(login);
-            } else {
-                userList = userRepository.findByUsername(login);
+            User user = userService.findUserByMail(login);
+            if (user == null) {
+                throw new BadCredentialsException("Authentication failed");
             }
-            LOGGER.info("userList size: " + userList.size());
-
-            for (User user: userList) {
-
-                LOGGER.info("user: " + user.toString());
-                if (passwordEncoder.matches(password, user.getPassword()) || password.equals(user.getPassword())) {
-                    userEntity.add(user);
-                }
+            if (this.passwordEncode.matches(password, user.getPassword()) || password.equals(user.getPassword())) {
+               UserDTO userDto = ConvertUtilities.toUserDTO(user);
+                return new UsernamePasswordAuthenticationToken(userDto, null, userDto.getAuthorities());
+            }else{
+                throw new BadCredentialsException("username and password don't match");
             }
-
-            if (userEntity.isEmpty()) {
-                Utils.throwRestException(RestExceptionCode.USERNAME_PW_NOT_MATCH, messageByLocaleService);
-            }
-            UserDTO authentificationResponseDTO = new UserDTO();
-            List<Role> autoritiesList           = new ArrayList<>(userEntity.get(0).getRoles());
-            User user                           = userEntity.get(0);
-            if (!user.isEnabled()) {
-                throw new RestException(RestExceptionCode.USER_NOT_ENABLED);
-            }
-            LOGGER.info("Auser: {}", user.toString());
-
-            for (Role authEntity: autoritiesList) {
-                authentificationResponseDTO.addRole(authEntity.getAuthority().trim());
-                authentificationResponseDTO.addAuthority(new SimpleGrantedAuthority(authEntity.getAuthority().trim()));
-            }
-            appUserStorage.storeAppUser(authentificationResponseDTO);
-
-            return new UsernamePasswordAuthenticationToken(authentificationResponseDTO, null, authentificationResponseDTO.getAuthorities());
-
-        } finally {
-            AppUserStorage.lock.unlock();
+        }catch (Exception e){
+            throw new BadCredentialsException("Authentication failed");
         }
     }
 
