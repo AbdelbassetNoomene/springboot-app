@@ -48,7 +48,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         });
         String jwt= JWT.create()
                 .withIssuer(request.getRequestURI())
-                .withSubject(user.getUsername())
+                .withSubject(user.toString())
                 .withArrayClaim("roles",roles.toArray(new String[roles.size()]))
                 .withExpiresAt(new Date(System.currentTimeMillis()+604800))
                 .sign(Algorithm.HMAC256("cni-tunisie"));

@@ -84,7 +84,7 @@ public class AuthenticationController {
 	            }
 				tokenResponse= JWT.create()
 						.withIssuer(httpServletRequest.getRequestURI())
-						.withSubject(userDTO.getEmail())
+						.withSubject(jsonUserDetails)
 						.withArrayClaim("roles",userDTO.getRoles().toArray(new String[userDTO.getRoles().size()]))
 						.withExpiresAt(new Date(System.currentTimeMillis()+604800))
 						.sign(Algorithm.HMAC256("cni-tunisie"));

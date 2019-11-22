@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import java.util.Date;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,7 +29,7 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        response.addHeader("Access-Control-Allow-Origin", "*");
+        //response.addHeader("Access-Control-Allow-Origin", "*");
         response.addHeader("Access-Control-Allow-Headers", "Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,authorization");
         response.addHeader("Access-Control-Expose-Headers", "Access-Control-Allow-Origin, Access-Control-Allow-Credentials, authorization");
         if (request.getMethod().equals("OPTIONS")) {
@@ -55,7 +56,18 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken user =
                     new UsernamePasswordAuthenticationToken(username, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(user);
+            addUpdatedAuthTokenToResponse(username, response,roles);
             filterChain.doFilter(request, response);
         }
+    }
+
+    private void addUpdatedAuthTokenToResponse(String jsonUserDetails, HttpServletResponse response, List<String> roles) {
+        String jwt= JWT.create()
+            .withIssuer("/auth")
+            .withSubject(jsonUserDetails)
+            .withArrayClaim("roles",roles.toArray(new String[roles.size()]))
+            .withExpiresAt(new Date(System.currentTimeMillis()+604800))
+            .sign(Algorithm.HMAC256("cni-tunisie"));
+        response.addHeader("Authorization",jwt);
     }
 }
