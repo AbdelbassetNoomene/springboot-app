@@ -31,23 +31,21 @@ public class SocketRest {
     }
 
     @MessageMapping("/send/message")
-    public Map<String, String> useSocketCommunication(String message){
+    public void useSocketCommunication(String message){
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> messageConverted = null;
+        Message messageConverted = null;
         try {
-            messageConverted = mapper.readValue(message, Map.class);
+            messageConverted = mapper.readValue(message, Message.class);
         } catch (IOException e) {
             messageConverted = null;
         }
         if(messageConverted!=null){
-            if(messageConverted.containsKey("toId") && messageConverted.get("toId")!=null && !messageConverted.get("toId").equals("")){
-                this.simpMessagingTemplate.convertAndSend("/topic/"+messageConverted.get("toId"),messageConverted);
-                this.simpMessagingTemplate.convertAndSend("/topic/"+messageConverted.get("fromId"),message);
+            if(messageConverted.getDestination() !=null) {
+                notificationService.sendNotifToSpecificUser(messageConverted, messageConverted.getDestination());
             }else{
-                this.simpMessagingTemplate.convertAndSend("/topic",messageConverted);
+                notificationService.sendNotifToPrefixedUsers(messageConverted, "");
             }
         }
-        return messageConverted;
     }
 
     @GetMapping("/api/users")

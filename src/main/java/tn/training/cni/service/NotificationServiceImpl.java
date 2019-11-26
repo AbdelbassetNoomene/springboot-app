@@ -45,11 +45,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendNotifToPrefixedUsers(Message message, String prefix) {
-        simpUserRegistry.getUsers().forEach(user ->{
-            if(user.getName().contains(prefix)) {
+        if(prefix == null){
+            simpUserRegistry.getUsers().forEach(user ->{
                 sendNotifToSpecificUser(message, user.getName());
-            }
-        } );
+            } );
+        }else{
+            simpUserRegistry.getUsers().forEach(user ->{
+                if(user.getName().contains(prefix)) {
+                    sendNotifToSpecificUser(message, user.getName());
+                }
+            } );
+        }
     }
 
 }
