@@ -53,9 +53,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests().antMatchers("/auth/**", "/api/socket/**", "/app/send/message").permitAll();
-        http.authorizeRequests().antMatchers(HttpMethod.GET,"/users/**").authenticated();
+        http.authorizeRequests().antMatchers(HttpMethod.GET,"/users/**").permitAll();
         http.authorizeRequests().antMatchers(HttpMethod.POST,"/users/**").hasAuthority("ADMIN");
-        http.authorizeRequests().antMatchers("/notifications/**").permitAll();
+        http.authorizeRequests().antMatchers("/notifications/**", "/employees/**").permitAll();
         http.authorizeRequests().anyRequest().authenticated();
         http.addFilter(new JWTAuthenticationFilter(authenticationManager()));
         http.addFilterBefore(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
