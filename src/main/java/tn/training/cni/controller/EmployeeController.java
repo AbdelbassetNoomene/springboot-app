@@ -1,5 +1,6 @@
 package tn.training.cni.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -7,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,21 +44,20 @@ public class EmployeeController {
 	
 	
 	
-	@GetMapping("")
-	  public ResponseEntity<byte[]> report() {
-	   
-	    byte[] bytes = generatePDFReport();
-	    return ResponseEntity
-	      .ok()
-	      // Specify content type as PDF
-	      .header("Content-Type", "application/pdf; charset=UTF-8")
-	      // Tell browser to display PDF if it can
-	      .header("Content-Disposition", "inline; filename=\"report.pdf\"")
-	      .body(bytes);
+	@GetMapping(value = "", produces = MediaType.APPLICATION_PDF_VALUE)
+	  public ResponseEntity<InputStreamResource> report() {
+		HttpHeaders headers = new HttpHeaders();
+		ByteArrayInputStream bis = generatePDFReport();
+				headers.add("Content-Disposition", "inline; filename=Emp. Report.pdf");
+		return ResponseEntity
+				.ok()
+				.headers(headers)
+				.contentType(MediaType.APPLICATION_PDF)
+				.body(new InputStreamResource(bis));
 	  }
 	  
 	
-	public byte[] generatePDFReport() {
+	public ByteArrayInputStream generatePDFReport() {
 		try {
 
 			File resource = new ClassPathResource("employee-rpt.jrxml").getFile();
@@ -97,7 +100,7 @@ public class EmployeeController {
 //			exporter.exportReport();
 
 //			// Export the report to a PDF file
-			return JasperExportManager.exportReportToPdf(jasperPrint);
+			return new ByteArrayInputStream(JasperExportManager.exportReportToPdf(jasperPrint));
 
 			
 
