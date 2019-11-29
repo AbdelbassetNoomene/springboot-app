@@ -71,7 +71,7 @@ public class EmployeeController {
 			// Add parameters
 			Map<String, Object> parameters = new HashMap();
 
-			parameters.put("createdBy", "Websparrow.org");
+			parameters.put("createdBy", "cni.tni");
 
 			// Fill the report
 			JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters,
