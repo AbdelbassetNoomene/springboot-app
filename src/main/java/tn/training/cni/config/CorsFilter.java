@@ -32,7 +32,11 @@ public class CorsFilter implements Filter {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
         } else {
-            chain.doFilter(req, resp);
+
+                response.setHeader("Origin", "http://192.168.2.7:4100/training-app/users");
+
+            chain.doFilter(req, response);
+
         }
 
     }
