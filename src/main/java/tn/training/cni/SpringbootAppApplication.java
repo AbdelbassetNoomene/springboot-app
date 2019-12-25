@@ -63,7 +63,7 @@ public class SpringbootAppApplication {
 	@Bean
 	public ServiceProperties serviceProperties() {
 		ServiceProperties serviceProperties = new ServiceProperties();
-		serviceProperties.setService("http://192.168.2.7:9090/login/cas");
+		serviceProperties.setService("http://localhost:9090/auth/cas");
 		serviceProperties.setSendRenew(false);
 		return serviceProperties;
 	}
